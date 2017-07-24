@@ -16,7 +16,6 @@
    all_series = {function="json_encode($fsc->serie->all())"};
    cliente = {function="json_encode($fsc->cliente_s)"};
    nueva_venta_url = '{$fsc->nuevo_servicio_url}';
-   kiwimaru_url = '{#FS_COMMUNITY_URL#}/index.php?page=kiwimaru';
    function check(id) {
       if( $("#"+id).is(":checked") )
       {
@@ -108,21 +107,27 @@
    <div class="container-fluid">
       <div class="row">
          <div class="col-md-8 col-sm-8 col-xs-8">
-            <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
-               <span class="glyphicon glyphicon-refresh"></span>
-            </a>
+            <div class="btn-group hidden-xs">
+               <a class="btn btn-sm btn-default" href="index.php?page=ventas_servicios">
+                  <span class="glyphicon glyphicon-arrow-left"></span>
+                  <span class="hidden-xs">&nbsp;Volver</span>
+               </a>
+               <a class="btn btn-sm btn-default" href="{$fsc->url()}" title="Recargar la página">
+                  <span class="glyphicon glyphicon-refresh"></span>
+               </a>
+            </div>
             <div class="btn-group">
                <a id="b_imprimir" class="btn btn-sm btn-default" href="#">
                   <span class="glyphicon glyphicon-print"></span>
-                  <span class="hidden-xs">&nbsp; Imprimir</span>
+                  <span class="hidden-xs">&nbsp;Imprimir</span>
                </a>
                {if="$fsc->empresa->can_send_mail()"}
                <a id="b_enviar" class="btn btn-sm btn-default" href="#">
                   <span class="glyphicon glyphicon-envelope"></span>
                   {if="$fsc->servicio->femail"}
-                  <span class="hidden-xs">&nbsp; Reenviar</span>
+                  <span class="hidden-xs">&nbsp;Reenviar</span>
                   {else}
-                  <span class="hidden-xs">&nbsp; Enviar</span>
+                  <span class="hidden-xs">&nbsp;Enviar</span>
                   {/if}
                </a>
                {/if}
@@ -138,7 +143,7 @@
             </div>
             {if="$fsc->servicio->idalbaran"}
             <div class="btn-group">
-               <a class="btn btn-sm btn-info text-capitalize" href="{$fsc->servicio->albaran_url()}">
+               <a class="btn btn-sm btn-info text-capitalize" href="index.php?page=ventas_albaran&id={$fsc->servicio->idalbaran}" target="_blank"/>
                   <span class="glyphicon glyphicon-eye-open"></span>
                   <span class="hidden-xs"> &nbsp; Ver {#FS_ALBARAN#}</span>
                </a>
@@ -151,6 +156,11 @@
                </a>
             </div>
             {/if}
+            {if="$fsc->historico"}
+               <a href="#" class="btn btn-sm btn-default" data-toggle="modal" data-target="#modal_historico" title="Historial del {#FS_SERVICIO#}">
+                  <i class="fa fa-book" aria-hidden="true"></i>
+               </a>
+            {/if}
          </div>
          <div class="col-md-4 col-sm-4 col-xs-4 text-right">
             <a class="btn btn-sm btn-success" href="index.php?page=nuevo_servicio">
@@ -160,18 +170,18 @@
                {if="$fsc->allow_delete"}
                <a id="b_eliminar" class="btn btn-sm btn-danger" href="#">
                   <span class="glyphicon glyphicon-trash"></span>
-                  <span class="hidden-xs hidden-sm">&nbsp; Eliminar</span>
+                  <span class="hidden-xs hidden-sm">&nbsp;Eliminar</span>
                </a>
                {/if}
                <button class="btn btn-sm btn-primary" type="submit" onclick="show_tab_grupos()">
                   <span class="glyphicon glyphicon-floppy-disk"></span>
-                  <span class="hidden-xs">&nbsp; Guardar</span>
+                  <span class="hidden-xs">&nbsp;Guardar</span>
                </button>
             </div>
          </div>
       </div>
       <div class="row">
-         <div class="col-md-12">
+         <div class="col-md-8">
             <br/>
             <ol class="breadcrumb" style="margin-bottom: 5px;">
                <li><a href="{$fsc->ppage->url()}">Ventas</a></li>
@@ -198,6 +208,16 @@
                Sin datos de qué empleado ha creado este {#FS_SERVICIO#}.
                {/if}
             </p>
+         </div>
+         <br/>
+         <div class='col-md-4'>
+            {if="$fsc->cliente_s"}
+            <ol class="breadcrumb" style="margin-bottom: 5px;">
+               <li class="active"><b>Teléfonos:</b></li>
+               <li>{$fsc->cliente_s->telefono1}</li>
+               <li>{$fsc->cliente_s->telefono2}</li>
+            </ol>
+            {/if}
          </div>
       </div>
       <div class="row">
@@ -282,35 +302,35 @@
          <li role="presentation" class="active">
             <a href="#servicio" aria-controls="servicio" role="tab" data-toggle="tab">
                <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
-               <span class="hidden-xs">&nbsp; {$fsc->setup['st_servicios']}</span>
+               <span class="hidden-xs">&nbsp;{$fsc->setup['st_servicios']}</span>
             </a>
          </li>
-         {loop="$fsc->extensions"}
+         <li role="presentation">
+            <a href="#lineas_p" aria-controls="lineas_p" role="tab" data-toggle="tab">
+               <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+               <span class="hidden-xs">&nbsp;Líneas</span>
+            </a>
+         </li>
+         <li role="presentation">
+            <a href="#datos" aria-controls="datos" role="tab" data-toggle="tab">
+               <span class="glyphicon glyphicon-eur" aria-hidden="true"></span>
+               <span class="hidden-xs">&nbsp;Datos</span>
+            </a>
+         </li>
+         <li>
+            <a href="#detalles" aria-controls="detalles" role="tab" data-toggle="tab">
+               <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+               <span class="hidden-xs">&nbsp;Detalles</span>
+               <span class="hidden-sm badge">{$fsc->servicio->num_detalles()}</span>
+            </a>
+        </li>
+        {loop="$fsc->extensions"}
             {if="$value->type=='tab'"}
             <li role="presentation">
                <a href="#ext_{$value->name}" aria-controls="ext_{$value->name}" role="tab" data-toggle="tab">{$value->text}</a>
             </li>
             {/if}
          {/loop}
-         <li role="presentation">
-            <a href="#lineas_p" aria-controls="lineas_p" role="tab" data-toggle="tab">
-               <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-               <span class="hidden-xs">&nbsp; Líneas</span>
-            </a>
-         </li>
-         <li role="presentation">
-            <a href="#datos" aria-controls="datos" role="tab" data-toggle="tab">
-               <span class="glyphicon glyphicon-eur" aria-hidden="true"></span>
-               <span class="hidden-xs">&nbsp; Datos</span>
-            </a>
-         </li>
-         <li>
-            <a href="#detalles" aria-controls="detalles" role="tab" data-toggle="tab">
-               <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
-               <span class="hidden-xs">&nbsp; Detalles</span>
-               <span class="hidden-sm badge">{$fsc->servicio->num_detalles()}</span>
-            </a>
-        </li>
       </ul>
    </div>
    <div class="tab-content">
@@ -524,6 +544,12 @@
                </tbody>
             </table>
             {else}
+            <div class="row">
+               <div class="col-sm-12">
+                  <div class="alert alert-warning">Ya no puedes añadir líneas</div>
+                  <br/>
+               </div>
+            </div>
             <table class="table table-hover">
                <thead>
                   <tr>
@@ -567,6 +593,14 @@
       </div>
       <div role="tabpanel" class="tab-pane" id="datos">
          <div class="container-fluid" style="margin-top: 10px;">
+            {if="$fsc->albaranserv"}
+            <div class="row">
+               <div class="col-sm-12">
+                  <div class="alert alert-warning">Estos datos ya no pueden ser modificados.</div>
+                  <br/>
+               </div>
+            </div>
+            {/if}
             <div class="row">
                <div class="col-sm-3">
                   <div class="form-group">
@@ -725,180 +759,7 @@
    </div>
 </form>
 
-<div class="modal" id="modal_articulos">
-   <div class="modal-dialog" style="width: 99%; max-width: 1000px;">
-      <div class="modal-content">
-         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 class="modal-title">Buscar artículos</h4>
-         </div>
-         <div class="modal-body">
-            <form id="f_buscar_articulos" name="f_buscar_articulos" action="{$fsc->url()}" method="post" class="form">
-               <input type="hidden" name="codcliente" value="{$fsc->servicio->codcliente}"/>
-               <div class="container-fluid">
-                  <div class="row">
-                     <div class="col-sm-4">
-                        <div class="input-group">
-                           <input class="form-control" type="text" name="query" autocomplete="off"/>
-                           <span class="input-group-btn">
-                              <button class="btn btn-primary" type="submit">
-                                 <span class="glyphicon glyphicon-search"></span>
-                              </button>
-                           </span>
-                        </div>
-                        <label>
-                           <input type="checkbox" name="con_stock" value="TRUE" onchange="buscar_articulos()"/>
-                           sólo con stock
-                        </label>
-                     </div>
-                     <div class="col-sm-4">
-                        <select class="form-control" name="codfamilia" onchange="buscar_articulos()">
-                           <option value="">Cualquier familia</option>
-                           <option value="">------</option>
-                           {loop="$fsc->familia->all()"}
-                           <option value="{$value->codfamilia}">{$value->nivel}{$value->descripcion}</option>
-                           {/loop}
-                        </select>
-                     </div>
-                     <div class="col-sm-4">
-                        <select class="form-control" name="codfabricante" onchange="buscar_articulos()">
-                           <option value="">Cualquier fabricante</option>
-                           <option value="">------</option>
-                           {loop="$fsc->fabricante->all()"}
-                           <option value="{$value->codfabricante}">{$value->nombre}</option>
-                           {/loop}
-                        </select>
-                     </div>
-                  </div>
-               </div>
-            </form>
-         </div>
-         <ul class="nav nav-tabs" id="nav_articulos" style="display: none;">
-            <li id="li_mis_articulos">
-               <a href="#" id="b_mis_articulos">Mi catálogo</a>
-            </li>
-            <li id="li_kiwimaru">
-               <a href="#" id="b_kiwimaru">
-                  <span class="glyphicon glyphicon-globe"></span>
-               </a>
-            </li>
-            <li id="li_nuevo_articulo">
-               <a href="#" id="b_nuevo_articulo">
-                  <span class="glyphicon glyphicon-plus"></span> &nbsp; Nuevo
-               </a>
-            </li>
-         </ul>
-         <div id="search_results"></div>
-         <div id="kiwimaru_results"></div>
-         <div id="nuevo_articulo" class="modal-body" style="display: none;">
-            <form name="f_nuevo_articulo" action="{$fsc->url()}" method="post" class="form">
-               <div class="container-fluid">
-                  <div class="row">
-                     <div class="col-sm-4">
-                        <div class="form-group">
-                           Referencia:
-                           <div class="input-group">
-                              <input class="form-control" type="text" name="referencia" maxlength="18" autocomplete="off"/>
-                              <span class="input-group-btn" title="Borrar">
-                                 <button class="btn btn-default" type="button" onclick="document.f_nuevo_articulo.referencia.value='';document.f_nuevo_articulo.descripcion.focus();">
-                                    <span class="glyphicon glyphicon-edit"></span>
-                                 </button>
-                              </span>
-                           </div>
-                           <p class="help-block">Dejar en blanco para asignar una referencia automática.</p>
-                        </div>   
-                     </div>
-                     <div class="col-sm-8">
-                        <div class="form-group">
-                           Descripción:
-                           <textarea name="descripcion" rows="1" class="form-control"></textarea>
-                        </div>
-                     </div>
-                  </div>
-                  <div class="row">
-                     <div class="col-sm-4">
-                        <div class="form-group">
-                           Código de barras:
-                           <div class="input-group">
-                              <span class="input-group-addon">
-                                 <span class="glyphicon glyphicon-barcode"></span>
-                              </span>
-                              <input class="form-control" type="text" name="codbarras" maxlength="18" autocomplete="off"/>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-sm-4">
-                        <div class="form-group">
-                           <a href="{$fsc->familia->url()}">Familia</a>:
-                           <select name="codfamilia" class="form-control">
-                              <option value="">Ninguna</option>
-                              <option value="">------</option>
-                              {loop="$fsc->familia->all()"}
-                              <option value="{$value->codfamilia}">{$value->nivel}{$value->descripcion}</option>
-                              {/loop}
-                           </select>
-                        </div>
-                     </div>
-                     <div class="col-sm-4">
-                        <div class="form-group">
-                           <a href="{$fsc->fabricante->url()}">Fabricante</a>:
-                           <select name="codfabricante" class="form-control">
-                              <option value="">Ninguno</option>
-                              <option value="">------</option>
-                              {loop="$fsc->fabricante->all()"}
-                              <option value="{$value->codfabricante}">{$value->nombre}</option>
-                              {/loop}
-                           </select>
-                        </div>
-                     </div>
-                  </div>
-                  <div class="row">
-                     <div class="col-sm-4">
-                        <div class="form-group">
-                           <a href="{$fsc->impuesto->url()}">{#FS_IVA#}</a>:
-                           <select name="codimpuesto" class="form-control">
-                              {loop="$fsc->impuesto->all()"}
-                              <option value="{$value->codimpuesto}"{if="$value->is_default()"} selected=""{/if}>{$value->descripcion}</option>
-                              {/loop}
-                           </select>
-                        </div>
-                     </div>
-                     <div class="col-sm-4">
-                        <div class="form-group">
-                           Precio de venta:
-                           <input type="text" name="pvp" value="0" class="form-control" autocomplete="off"/>
-                        </div>
-                     </div>
-                     <div class="col-sm-4 text-right">
-                        <br/>
-                        <button class="btn btn-sm btn-primary" type="submit" onclick="new_articulo();return false;">
-                           <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar y seleccionar
-                        </button>
-                     </div>
-                  </div>
-                  <div class="row">
-                     <div class="col-sm-12">
-                        <label class="checkbox-inline">
-                           <input type="checkbox" name="secompra" value="TRUE" checked=""/> Se compra
-                        </label> &nbsp;
-                        <label class="checkbox-inline">
-                           <input type="checkbox" name="sevende" value="TRUE" checked=""/> Se vende
-                        </label> &nbsp;
-                        <label class="checkbox-inline">
-                           <input type="checkbox" name="nostock" value="TRUE"/> No controlar stock
-                        </label> &nbsp;
-                        <label class="checkbox-inline">
-                           <input type="checkbox" name="publico" value="TRUE"/>
-                           <span class="glyphicon glyphicon-globe"></span> Público
-                        </label>
-                     </div>
-                  </div>
-               </div>
-            </form>
-         </div>
-      </div>
-   </div>
-</div>
+{include="block/modal_buscar_articulo"}
 
 <div class="modal fade" id="modal_imprimir_servicio">
    <div class="modal-dialog">
@@ -1027,16 +888,22 @@
                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                <h4 class="modal-title">¿Realmente desea eliminar este {#FS_SERVICIO#}?</h4>
             </div>
+            {if="$fsc->servicio->idalbaran"}
+            <div class="alert alert-info">
+               Hay un {#FS_ALBARAN#} asociado que será eliminada junto con este {#FS_SERVICIO#}.
+            </div>
+            {/if}
+            {if="$fsc->factura"}
+            <div class="alert alert-warning">
+               <b>Hay una {#FS_FACTURA#} asociada que será eliminada junto con este {#FS_SERVICIO#}.</b>
+            </div>
+            {/if}
             <div class="modal-footer">
                <button class="btn btn-sm btn-danger" onclick="this.disabled = true;this.form.submit();">
                   <span class="glyphicon glyphicon-trash"></span>&nbsp; Eliminar
                </button>
             </div>
-            {if="$fsc->servicio->idalbaran"}
-            <div class="alert alert-info">
-               Hay un {#FS_SERVICIO#} asociado que será eliminada junto con este {#FS_SERVICIO#}.
-            </div>
-            {/if}
+
          </div>
       </div>
    </div>
@@ -1059,6 +926,52 @@
                </button>
             </div>
          </form>
+      </div>
+   </div>
+</div>
+<div class="modal" id="modal_historico">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title">
+               <i class="fa fa-book" aria-hidden="true"></i>
+               Histórico del {#FS_SERVICIO#} {$fsc->servicio->codigo}
+            </h4>
+         </div>
+         <div class="table-responsive">
+            <table class="table table-hover">
+               <thead>
+                  <tr>
+                     <th>Tipo</th>
+                     <th>Documento</th>
+                     <th class="text-right">Importe</th>
+                     <th class="text-right">Fecha</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr class="warning">
+                     <td class="text-capitalize">{#FS_SERVICIO#}</td>
+                     <td><b>Este {#FS_SERVICIO#}</b></td>
+                     <td class="text-right">{$fsc->show_precio($fsc->servicio->total, $fsc->servicio->coddivisa)}</td>
+                     <td class="text-right">{$fsc->servicio->fecha}</td>
+                  </tr>
+                  {loop="$fsc->historico"}
+                  <tr>
+                     <td class="text-capitalize">{$value['documento']}</td>
+                     <td>
+                        <a href="{$value['modelo']->url()}" target="_blank">{$value['modelo']->codigo}</a>
+                        {if="$value['modelo']->numero2"}{$value['modelo']->numero2}{/if}
+                     </td>
+                     <td class="text-right">{$fsc->show_precio($value['modelo']->total, $value['modelo']->coddivisa)}</td>
+                     <td class="text-right">{$value['modelo']->fecha}</td>
+                  </tr>
+                  {/loop}
+               </tbody>
+            </table>
+         </div>
       </div>
    </div>
 </div>
